@@ -30,6 +30,14 @@ class PID {
    * @output The total PID error
    */
   double TotalError();
+  
+  /* 
+  * Set a desired offset for stable control
+  * @param d The desired float region of stable control.
+  */
+  double SetDesired(double d);
+
+  double UpdateTaus(double Kp_, double Ki_, double Kd_);
 
  private:
   /**
@@ -45,6 +53,14 @@ class PID {
   double Kp;
   double Ki;
   double Kd;
+  
+  /** 
+  * Previous CTE
+  */
+  double prev_cte;
+  double total_error;
+  
+  double desired;
 };
 
 #endif  // PID_H

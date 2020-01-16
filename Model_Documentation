@@ -1,0 +1,41 @@
+
+Settled for adaptive PID since changes in speed and curvature of the road lead to parameters being unfit for all these situations. As my intuition told me, this isn't news (// Adaptive PID - https://drum.lib.umd.edu/bitstream/handle/1903/5044/MS_90-10.pdf?sequence=1&isAllowed=y).
+
+For example a human would emply a form of mild PID control when going mostly in a straight line while in highly curved roads he would employ a "kp" which would be larger. Even more, when tuning PID constants for a certain drive (speed/curvature), attacking certain curbs at different speeds might lead to significant overshoot compared to other milder curbs at slower speeds. An additional attenuation factor for the P constant is needed since the road isn't straight and we aren't regulating a plant to a constant steady state (the steady state is changing). 
+
+Since we do not have information pertaining directly to curvature, only the distance to the center, we would need a factor dependent on the rate of change of curvature (second order derivative of position). I simulate this by adapting the P constant as the error increases by assuming that the error increases in higher curvature curbs, and at higher speeds as well. This is only the case when the P and D have been fine tuned to a significant extent for this hypothesis to hold.
+
+In the end I tested the edge cases for "kd" and "kp" and used them as endpoints for the adaptive P controller on the P and D terms of the PID. The I term was not used since the simulator has no bias and it isn't required.
+
+Some of the points which functioned better and better until I arrived at the final values of the parameters:
+
+Manual tuning:
+
+            // Coefficients attempted and bringing better and better results:
+            //    0.080, 0.000, 3.000
+            //    0.095, 0.000, 3.000
+            //    0.100, 0.000, 3.000
+            //    0.100, 0.000, 2.600
+            //    0.125, 0.000, 3.000
+            //    0.125, 0.000, 3.300
+            //    0.14 , 0.000, 3.600
+            //    0.125, 0.000, 3.600 - with 0.6f throttle main value
+            //    0.125, 0.000, 3.600 with 0.7 fixed throttle
+            //    0.125, 0.000, 5.000 with 0.7 fixed throttle
+            
+            // tau_p = 0.040 + (fabs(cte)/100.0)*5.0;, min 0.040, max 0.12, 1.8-1.9 tau_d
+            // tau_p = 0.010 + (fabs(cte)/100.0) * (3.30 + fabs(speed)*0.003); // also 0.095 with 3.000 - best seems to be 0.125, 0.0001/0.001 and 3
+            // tau_p = 0.020 + (fabs(cte)/100.0) * (3.00 + (fabs(speed - 50)) * (-0.011)); // 0.14 with d = 3.6 - also 0.095 with 3.000 - best seems to be 0.125, 0.0001/0.001 and 3
+            // tau_p = 0.020 + (fabs(cte)/100.0) * (1.95);
+            // tau_p = 0.020 + pow(fabs(cte), 2.9 * (speed / 100.0))/(100.0) * 1.00;
+            // tau_p = 0.020 + (fabs(cte) * (3.1 * (speed / 100.0))/(100.0));
+
+Obviously, what worked well at 20 mph did not work well for 50 mph.
+
+What felt natural and human was a "kp" which is as small as possible when driving straight and gets larger as we corner. There are 3 curves which we must watch for. The proportionality was tuned to minimize wiggle in corners. The differential term was also tuned with a P controller on the Kd coefficient, the edge cases being chosen to minimize wiggle in straight lines and in the highest curvature curves, giving edges in between 1.2 and 5. 
+
+Therefore, this adaptable PID makes sure that curves are negotiated more naturally (like a human).
+
+The adaptive nature of the P factor relies both on the error (which is related to the instantaneous curvature) as well as the speed. I have managed to negociate the track successfully up to about 85 mph (though it is wiggly and slightly climbs on the ledge at that speed) and reliably at about 65-70 mph.
+
+There is also a separate PID on speed which also takes into accoutn the instantaneous error, the reasoning being that we should break in curves.
