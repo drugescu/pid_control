@@ -53,7 +53,7 @@ int main() {
   //double tau_pS = 0.3;//0.05;
   //double tau_iS = 0.00;//0.006;
   //double tau_dS = 0.00;
-  double tau_pS = 0.1;//0.05;
+  double tau_pS = 0.15;//0.05;
   double tau_iS = 0.00;//0.006;
   double tau_dS = 0.00;
 
@@ -87,19 +87,20 @@ int main() {
 
             // Adaptive PID - https://drum.lib.umd.edu/bitstream/handle/1903/5044/MS_90-10.pdf?sequence=1&isAllowed=y
 
-             
-            if (fabs(cte) <= 0.7) // 1.8 cte with 1.55 and then 3.30
-              tau_p = 0.020 + (fabs(cte)/100.0) * 0.7;
-            if (fabs(cte) > 0.8 && fabs(cte) < 1.15) // 1.8 cte with 1.55 and then 3.30
-              tau_p = 0.020 + (fabs(cte)/100.0) * 1.35;
-            else if (fabs(cte) > 1.1 && fabs(cte) < 1.8) // 1.8 cte with 1.55 and then 3.30
-              tau_p = 0.020 + (fabs(cte)/100.0) * 1.95;
-            else if (fabs(cte) > 1.8 && fabs(cte) < 2.2) // 1.8 cte with 1.55 and then 3.30
-              tau_p = 0.020 + (fabs(cte)/100.0) * 2.95;
-            else if (fabs(cte) > 2.2 && fabs(cte) < 2.9) // 1.8 cte with 1.55 and then 3.30
-              tau_p = 0.020 + (fabs(cte)/100.0) * 3.40;
+            double fe = fabs(cte);
+            double fep = fe/100.0;
+            if (fe <= 0.7) // <0.7-0.75, <1.15-1.45, <1.8-1.95, <2.2-2.35, <2.9-2.6, 2.6
+              tau_p = 0.020 + fep * 0.75;
+            if (fe > 0.7 && fe < 1.15) // 1.8 cte with 1.55 and then 3.30
+              tau_p = 0.020 + fep * 1.45;
+            else if (fe > 1.15 && fe < 1.8) // 1.8 cte with 1.55 and then 3.30
+              tau_p = 0.020 + fep * 1.95;
+            /*else if (fe > 1.8 && fe < 2.2) // 1.8 cte with 1.55 and then 3.30
+              tau_p = 0.020 + fep * 2.35;
+            else if (fe > 2.2 && fe < 2.9) // 1.8 cte with 1.55 and then 3.30
+              tau_p = 0.020 + fep * 2.60;*/
             else
-              tau_p = 0.020 + (fabs(cte)/100.0) * 4.15;
+              tau_p = 0.020 + fep * 2.35;
              
             //tau_p = 0.125;
             if (tau_p > 0.16)
@@ -136,7 +137,7 @@ int main() {
           //pidSp.UpdateError(cte);
           pidSp.UpdateError(fabs(cte));
           steer_value -= pidSt.TotalError();
-          throttle_value = 0.70f - pidSp.TotalError(); // 0.55f - totalerror is best
+          throttle_value = 0.65f - pidSp.TotalError(); // 0.55f - totalerror is best
           //throttle_value = 0.80f;
           
           if (throttle_value > 1.0f) throttle_value = 1.0f;
