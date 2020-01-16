@@ -50,11 +50,8 @@ int main() {
   pidSt.Init(tau_p, tau_i, tau_d);
 
   // PID for Speed
-  //double tau_pS = 0.3;//0.05;
-  //double tau_iS = 0.00;//0.006;
-  //double tau_dS = 0.00;
-  double tau_pS = 0.15;//0.05;
-  double tau_iS = 0.00;//0.006;
+  double tau_pS = 0.15;
+  double tau_iS = 0.00;
   double tau_dS = 0.00;
 
   pidSp.Init(tau_pS, tau_iS, tau_dS);
@@ -95,33 +92,25 @@ int main() {
               tau_p = 0.020 + fep * 1.45;
             else if (fe > 1.15 && fe < 1.8) // 1.8 cte with 1.55 and then 3.30
               tau_p = 0.020 + fep * 1.95;
-            /*else if (fe > 1.8 && fe < 2.2) // 1.8 cte with 1.55 and then 3.30
-              tau_p = 0.020 + fep * 2.35;
-            else if (fe > 2.2 && fe < 2.9) // 1.8 cte with 1.55 and then 3.30
-              tau_p = 0.020 + fep * 2.60;*/
             else
               tau_p = 0.020 + fep * 2.35;
              
             //tau_p = 0.125;
-            if (tau_p > 0.16)
-              tau_p = 0.16;
-             if (tau_p < 0.020)
-              tau_p = 0.020;
-            std::cout << "tau_p = " << tau_p << "\n";
+            if (tau_p > 0.16)  tau_p = 0.16;
+            if (tau_p < 0.020) tau_p = 0.020;
+            //std::cout << "tau_p = " << tau_p << "\n";
             
             tau_i = 0.0f;
             
-            //tau_d = 1.800; // pid on this too from 1.9 to 2.5?
-            //tau_d = 2.000 + (fabs(cte)/100.0) * 30.0; // pid on this too from 1.9 to 2.5?
-            //tau_d = 1.200 + (fabs(cte)/100.0) * 45.0; // pid on this too from 1.9 to 2.5? at pid throttle
-            tau_d = 1.200 + (fabs(cte)/100.0) * (20.0 + (fabs(speed) - 0) * 0.5f); // at pid throttle 0.85 - pidSp at 0.2p // 0.55
+            //tau_d = 1.200 + (fabs(cte)/100.0) * 45.0; 
+            tau_d = 1.200 + (fabs(cte)/100.0) * (20.0 + (fabs(speed) - 0) * 0.5f); 
             //tau_d = 1.2;
+            
             if (tau_d < 0.2) tau_d = 0.2;
             if (tau_d > 5.0) tau_d = 5.0;
 
-            std::cout << "tau_d = " << tau_d << "\n";
+            //std::cout << "tau_d = " << tau_d << "\n";
             pidSt.UpdateTaus(tau_p, tau_i, tau_d);
-            std::cout << "----------\n";
             
           }
           
@@ -132,20 +121,17 @@ int main() {
            *   Maybe use another PID controller to control the speed!
            */
           // PID-controllers
-          pidSt.UpdateError(cte);
-          //pidSp.UpdateError(cte_speed + cte);
-          //pidSp.UpdateError(cte);
           pidSp.UpdateError(fabs(cte));
           steer_value -= pidSt.TotalError();
-          throttle_value = 0.65f - pidSp.TotalError(); // 0.55f - totalerror is best
+          throttle_value = 0.45f - pidSp.TotalError(); // 0.55f - totalerror is best
           //throttle_value = 0.80f;
           
           if (throttle_value > 1.0f) throttle_value = 1.0f;
           if (throttle_value < 0.0f) throttle_value = 0.0f;
           
           // DEBUG
-          std::cout << "CTE: " << cte << " Steering Value: " << steer_value 
-                    << std::endl;
+          //std::cout << "CTE: " << cte << " Steering Value: " << steer_value 
+          //          << std::endl;
           
           json msgJson;
           msgJson["steering_angle"] = steer_value;
