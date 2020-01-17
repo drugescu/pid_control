@@ -1,5 +1,16 @@
+PID
+---
 
-Settled for adaptive PID since changes in speed and curvature of the road lead to parameters being unfit for all these situations. As my intuition told me, this isn't news (// Adaptive PID - https://drum.lib.umd.edu/bitstream/handle/1903/5044/MS_90-10.pdf?sequence=1&isAllowed=y).
+The proportional portion of the controller steers the car to the center of the lane. If used alone and value is high enough, the car overshoots very easily and goes out of the road quickly due to the road curvature (overshoot amplifies), otherwise it continuously overshoots right and left (equal lengths) on a straight road.
+
+The integral portion tries to eliminate a possible bias on the controlled system that could prevent the error to be eliminated. If used alone, it makes the car to go in circles. In the case of the simulator, no bias is present, and the I part of the PID is not used.
+
+The differential portion helps to counteract the proportional trend to overshoot the center line by smoothing the approach to it. In effect it dampens the overshoot.
+
+Model
+-----
+
+Initially settled for adaptive PID since changes in speed and curvature of the road lead to parameters being unfit for all these situations. As my intuition told me, this isn't news (// Adaptive PID - https://drum.lib.umd.edu/bitstream/handle/1903/5044/MS_90-10.pdf?sequence=1&isAllowed=y).
 
 For example a human would emply a form of mild PID control when going mostly in a straight line while in highly curved roads he would employ a "kp" which would be larger. Even more, when tuning PID constants for a certain drive (speed/curvature), attacking certain curbs at different speeds might lead to significant overshoot compared to other milder curbs at slower speeds. An additional attenuation factor for the P constant is needed since the road isn't straight and we aren't regulating a plant to a constant steady state (the steady state is changing). 
 
@@ -19,6 +30,8 @@ Manual tuning:
             //    0.125, 0.000, 3.000
             //    0.125, 0.000, 3.300
             //    0.14 , 0.000, 3.600
+            //    0.15 , 0.000, 3.000
+            //    0.15 , 0.000, 2.500
             //    0.125, 0.000, 3.600 - with 0.6f throttle main value
             //    0.125, 0.000, 3.600 with 0.7 fixed throttle
             //    0.125, 0.000, 5.000 with 0.7 fixed throttle
@@ -39,3 +52,8 @@ Therefore, this adaptable PID makes sure that curves are negotiated more natural
 The adaptive nature of the P factor relies both on the error (which is related to the instantaneous curvature) as well as the speed. I have managed to negociate the track successfully up to about 85 mph (though it is wiggly and slightly climbs on the ledge at that speed) and reliably at about 65-70 mph.
 
 There is also a separate PID on speed which also takes into accoutn the instantaneous error, the reasoning being that we should break in curves.
+
+Final PID
+---------
+
+As explained by the reviewer, the adaptive PID does not respect the requirements of the project and I had to take those factors out. What remains is a steering PID with factors 0.15, 0.0, 2.5 and a speed PID with only a P factor of 0.15. This ensures that the car drives at a speed of about 27-39 MPH successfully around the track, though at significantly less accuracy than an adaptive PID.

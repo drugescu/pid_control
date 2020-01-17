@@ -41,9 +41,9 @@ int main() {
   double tau_i = 0.004;
   double tau_d = 3.000;*/
 
-  double tau_p = 0.070;
-  double tau_i = 0.0001;
-  double tau_d = 0.2;
+  double tau_p = 0.150;
+  double tau_i = 0.0000;
+  double tau_d = 2.5;
   
   int counter = 0;
 
@@ -83,34 +83,23 @@ int main() {
           if (counter > 150) {
 
             // Adaptive PID - https://drum.lib.umd.edu/bitstream/handle/1903/5044/MS_90-10.pdf?sequence=1&isAllowed=y
+            // Apparently we can't use any other method to vary any part of the PID controller, must use basic algorithm
 
-            double fe = fabs(cte);
-            double fep = fe/100.0;
-            if (fe <= 0.7) // <0.7-0.75, <1.15-1.45, <1.8-1.95, <2.2-2.35, <2.9-2.6, 2.6
-              tau_p = 0.020 + fep * 0.75;
-            if (fe > 0.7 && fe < 1.15) // 1.8 cte with 1.55 and then 3.30
-              tau_p = 0.020 + fep * 1.45;
-            else if (fe > 1.15 && fe < 1.8) // 1.8 cte with 1.55 and then 3.30
-              tau_p = 0.020 + fep * 1.95;
-            else
-              tau_p = 0.020 + fep * 2.35;
-             
-            //tau_p = 0.125;
-            if (tau_p > 0.16)  tau_p = 0.16;
-            if (tau_p < 0.020) tau_p = 0.020;
-            //std::cout << "tau_p = " << tau_p << "\n";
+            //double fe = fabs(cte);
+            //double fep = fe/100.0;
+            //tau_p = 1.1;
             
-            tau_i = 0.0f;
+            //tau_i = 0.0f;
             
             //tau_d = 1.200 + (fabs(cte)/100.0) * 45.0; 
-            tau_d = 1.200 + (fabs(cte)/100.0) * (20.0 + (fabs(speed) - 0) * 0.5f); 
-            //tau_d = 1.2;
+            //tau_d = 1.200 + (fabs(cte)/100.0) * (20.0 + (fabs(speed) - 0) * 0.5f); 
+            //tau_d = 1.200;
             
-            if (tau_d < 0.2) tau_d = 0.2;
-            if (tau_d > 5.0) tau_d = 5.0;
+            //if (tau_d < 0.2) tau_d = 0.2;
+            //if (tau_d > 5.0) tau_d = 5.0;
 
             //std::cout << "tau_d = " << tau_d << "\n";
-            pidSt.UpdateTaus(tau_p, tau_i, tau_d);
+            //pidSt.UpdateTaus(tau_p, tau_i, tau_d);
             
           }
           
@@ -121,13 +110,16 @@ int main() {
            *   Maybe use another PID controller to control the speed!
            */
           // PID-controllers
+          pidSt.UpdateError(cte);
           pidSp.UpdateError(fabs(cte));
           steer_value -= pidSt.TotalError();
           throttle_value = 0.45f - pidSp.TotalError(); // 0.55f - totalerror is best
-          //throttle_value = 0.80f;
           
           if (throttle_value > 1.0f) throttle_value = 1.0f;
           if (throttle_value < 0.0f) throttle_value = 0.0f;
+
+          if (steer_value < -1.0f) steer_value = -1.0f;
+          if (steer_value >  1.0f) steer_value =  1.0f;
           
           // DEBUG
           //std::cout << "CTE: " << cte << " Steering Value: " << steer_value 
