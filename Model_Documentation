@@ -38,4 +38,4 @@ Therefore, this adaptable PID makes sure that curves are negotiated more natural
 
 The adaptive nature of the P factor relies both on the error (which is related to the instantaneous curvature) as well as the speed. I have managed to negociate the track successfully up to about 85 mph (though it is wiggly and slightly climbs on the ledge at that speed) and reliably at about 65-70 mph.
 
-There is also a separate PID on speed which also takes into accoutn the instantaneous error, the reasoning being that we should break in curves.
+There is also a separate PID on speed which also takes into account the instantaneous error, the reasoning being that we should break in curves.
